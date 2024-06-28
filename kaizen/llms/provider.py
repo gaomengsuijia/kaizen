@@ -1,5 +1,5 @@
 import litellm
-from kaizen.llms.prompts import BASIC_SYSTEM_PROMPT
+from kaizen.llms.prompts.general_prompts import BASIC_SYSTEM_PROMPT
 from kaizen.utils.config import ConfigData
 
 
@@ -20,6 +20,8 @@ class LLMProvider:
 
         if "models" in self.config.get("language_model"):
             self.models = self.config["language_model"]["models"]
+        else:
+            self.models = {}
 
         self.model = self.model_config["model"]
         if self.config.get("language_model", {}).get(
@@ -29,11 +31,15 @@ class LLMProvider:
             litellm.success_callback = ["supabase"]
             litellm.failure_callback = ["supabase"]
 
-    def chat_completion(self, prompt, user: str = None, custom_model=None):
-        messages = [
-            {"role": "system", "content": self.system_prompt},
-            {"role": "user", "content": prompt},
-        ]
+    def chat_completion(
+        self, prompt, user: str = None, custom_model=None, messages=None
+    ):
+
+        if not messages:
+            messages = [
+                {"role": "system", "content": self.system_prompt},
+                {"role": "user", "content": prompt},
+            ]
         if not custom_model:
             custom_model = self.model_config
 
